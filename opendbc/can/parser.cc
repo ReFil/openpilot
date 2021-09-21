@@ -70,6 +70,7 @@ bool MessageState::parse(uint64_t sec, uint16_t ts_, uint8_t * dat) {
           return false;
         }
       }
+    }
     else {
     }
     if (!ignore_counter) {
