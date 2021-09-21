@@ -52,8 +52,9 @@ void Sidebar::updateState(const UIState &s) {
   setProperty("netStrength", strength > 0 ? strength + 1 : 0);
 
   ItemStatus connectStatus;
-  int battery = (int)s.scene.deviceState.getBatteryPercent();
-  std::string batt = "BATTERY\n" + std::to_string(battery) + "%";
+  int battery = (int)deviceState.getBatteryPercent();
+  std::string batter = "BATTERY\n" + std::to_string(battery) + "%";
+  QString batt = QString::fromStdString(batter);
   if (battery > 89){
     connectStatus = {batt, good_color};
   }
