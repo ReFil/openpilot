@@ -50,18 +50,17 @@ class CarInterface(CarInterfaceBase):
 
     ret.enableGasInterceptor = True
     ret.stoppingControl = True      #should these be enabled for long control
-    ret.enableCamera = True
     ret.openpilotLongitudinalControl = True
     ret.minEnableSpeed = -1.
 
     #Longitudinal deadzone values
     ret.longitudinalTuning.deadzoneBP = [0., 9.]
     ret.longitudinalTuning.deadzoneV = [0., .15]
-    
+
     #Longitudinal Proportional values
     ret.longitudinalTuning.kpBP = [0., 5., 35.]
     ret.longitudinalTuning.kpV = [1., 0.8, 0.5]
-    
+
     #Longitudinal Integral Values
     ret.longitudinalTuning.kiBP = [0., 55.]
     ret.longitudinalTuning.kiV = [0.3, 0.2]
@@ -73,7 +72,7 @@ class CarInterface(CarInterfaceBase):
     #Brake maximum values
     ret.brakeMaxBP = [5., 20.]
     ret.brakeMaxV = [1., 0.9]
-    
+
     #ret.stoppingBrakeRate = 0.16 # reach stopping target smoothly
     #ret.startingBrakeRate = 2.0 # release brakes fast
     #ret.startAccel = 1.2 # Accelerate from 0 faster
