@@ -1,6 +1,7 @@
 #include "selfdrive/ui/qt/sidebar.h"
 
 #include <QMouseEvent>
+#include <string>
 
 #include "selfdrive/ui/qt/util.h"
 
@@ -51,11 +52,17 @@ void Sidebar::updateState(const UIState &s) {
   setProperty("netStrength", strength > 0 ? strength + 1 : 0);
 
   ItemStatus connectStatus;
-  auto last_ping = deviceState.getLastAthenaPingTime();
-  if (last_ping == 0) {
-    connectStatus = params.getBool("PrimeRedirected") ? ItemStatus{"NO\nPRIME", danger_color} : ItemStatus{"CONNECT\nOFFLINE", warning_color};
-  } else {
-    connectStatus = nanos_since_boot() - last_ping < 80e9 ? ItemStatus{"CONNECT\nONLINE", good_color} : ItemStatus{"CONNECT\nERROR", danger_color};
+  int battery = (int)deviceState.getBatteryPercent();
+  std::string batter = "BATTERY\n" + std::to_string(battery) + "%";
+  QString batt = QString::fromStdString(batter);
+  if (battery > 89){
+    connectStatus = {batt, good_color};
+  }
+  else if (battery > 20){
+    connectStatus = {batt, warning_color};
+  }
+  else{
+    connectStatus = {batt, danger_color};
   }
   setProperty("connectStatus", QVariant::fromValue(connectStatus));
 

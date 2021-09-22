@@ -64,7 +64,14 @@ bool MessageState::parse(uint64_t sec, uint16_t ts_, uint8_t * dat) {
           INFO("0x%X PEDAL CHECKSUM FAIL\n", address);
           return false;
         }
+      } else if (sig.type == SignalType::OCELOT_CHECKSUM) {
+        if (ocelot_checksum(dat_le, size) != tmp) {
+          INFO("0x%X OCELOT CHECKSUM FAIL\n", address);
+          return false;
+        }
       }
+    }
+    else {
     }
     if (!ignore_counter) {
       if (sig.type == SignalType::HONDA_COUNTER) {
@@ -76,6 +83,10 @@ bool MessageState::parse(uint64_t sec, uint16_t ts_, uint8_t * dat) {
           return false;
         }
       } else if (sig.type == SignalType::PEDAL_COUNTER) {
+        if (!update_counter_generic(tmp, sig.b2)) {
+          return false;
+        }
+      } else if (sig.type == SignalType::OCELOT_COUNTER) {
         if (!update_counter_generic(tmp, sig.b2)) {
           return false;
         }
