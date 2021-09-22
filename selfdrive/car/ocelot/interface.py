@@ -66,12 +66,12 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kiV = [0.3, 0.2]
 
     #Gas maximum values
-    ret.gasMaxBP = [0., 5., 35]
-    ret.gasMaxV = [0.35, 0.3, 0.4]
+    #ret.gasMaxBP = [0., 5., 35]
+    #ret.gasMaxV = [0.35, 0.3, 0.4]
 
     #Brake maximum values
-    ret.brakeMaxBP = [5., 20.]
-    ret.brakeMaxV = [1., 0.9]
+    #ret.brakeMaxBP = [5., 20.]
+    #ret.brakeMaxV = [1., 0.9]
 
     #ret.stoppingBrakeRate = 0.16 # reach stopping target smoothly
     #ret.startingBrakeRate = 2.0 # release brakes fast
@@ -89,6 +89,8 @@ class CarInterface(CarInterfaceBase):
     ret = self.CS.update(self.cp, self.cp_body, c.enabled)
 
     ret.canValid = self.cp.can_valid and self.cp_body.can_valid
+    ret.yawRate = self.VM.yaw_rate(ret.steeringAngleDeg * CV.DEG_TO_RAD, ret.vEgo)
+
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     # events
