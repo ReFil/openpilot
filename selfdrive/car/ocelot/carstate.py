@@ -41,7 +41,6 @@ class CarState(CarStateBase):
 
     #iBooster data
     ret.brakePressed = bool(cp.vl["BRAKE_STATUS"]['DRIVER_BRAKE_APPLIED'])
-    ret.brakeLights = bool(cp.vl["BRAKE_STATUS"]['BRAKE_APPLIED'])
     self.brakeUnavailable = not bool(cp.vl["BRAKE_STATUS"]['BRAKE_OK'])
 
     if self.CP.enableGasInterceptor:
