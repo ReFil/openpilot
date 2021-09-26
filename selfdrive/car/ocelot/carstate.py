@@ -19,14 +19,13 @@ class CarState(CarStateBase):
     self.engineRPM = 0
     self.setSpeed = 10
     self.buttonStates = BUTTON_STATES.copy()
-    self.oldButtonStates = BUTTON_STATES.copy()
 
   def update(self, cp, cp_body, enabled):
     ret = car.CarState.new_message()
 
     #Car specific information
     if self.CP.carFingerprint == CAR.SMART_ROADSTER_COUPE:
-        ret.doorOpen = False #any([cp_body.vl["BODYCONTROL"]['RIGHT_DOOR'], cp_body.vl["BODYCONTROL"]['LEFT_DOOR']]) != 0
+        ret.doorOpen = any([not(cp_body.vl["BODYCONTROL"]['RIGHT_DOOR']), not(cp_body.vl["BODYCONTROL"]['LEFT_DOOR'])])
         ret.seatbeltUnlatched = False
         ret.leftBlinker = bool(cp_body.vl["BODYCONTROL"]['LEFT_SIGNAL'])
         ret.rightBlinker = bool(cp_body.vl["BODYCONTROL"]['RIGHT_SIGNAL'])
@@ -71,14 +70,10 @@ class CarState(CarStateBase):
     self.buttonStates["cancel"] = bool(cp.vl["HIM_CTRLS"]['CANCEL_BTN'])
     self.buttonStates["setCruise"] = bool(cp.vl["HIM_CTRLS"]['SET_BTN'])
 
-    #if enabled:
-      #print(" OPENPILOT ENABLED")
     if not enabled:
       self.enabled = False
-      #print(" OPENPILOT OFF")
 
     if bool(self.buttonStates["setCruise"]) and not self.oldEnabled:
-      print("attempt enable")
       self.enabled = not self.enabled
       if self.enabled:
           self.setSpeed = (int_rnd((ret.vEgo * CV.MS_TO_MPH)/5) * 5)
@@ -86,10 +81,8 @@ class CarState(CarStateBase):
             self.setSpeed = 10
 
     if bool(self.buttonStates["accelCruise"]) and not self.oldSpeedUp:
-      print("speedup")
       self.setSpeed = self.setSpeed + 5
     if bool(self.buttonStates["decelCruise"]) and not self.oldSpeedDn:
-      print("speeddn")
       self.setSpeed = self.setSpeed - 5
 
     ret.cruiseState.speed = self.setSpeed * CV.MPH_TO_MS

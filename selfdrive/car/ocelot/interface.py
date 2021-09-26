@@ -16,8 +16,6 @@ class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
     super().__init__(CP, CarController, CarState)
 
-    self.gas_pressed_prev = False
-    self.brake_pressed_prev = False
     self.cruise_enabled_prev = False
     self.buttonStatesPrev = BUTTON_STATES.copy()
 
@@ -66,14 +64,6 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kiBP = [0., 55.]
     ret.longitudinalTuning.kiV = [0.3, 0.2]
 
-    #Gas maximum values
-    #ret.gasMaxBP = [0., 5., 35]
-    #ret.gasMaxV = [0.35, 0.3, 0.4]
-
-    #Brake maximum values
-    #ret.brakeMaxBP = [5., 20.]
-    #ret.brakeMaxV = [1., 0.9]
-
     #ret.stoppingBrakeRate = 0.16 # reach stopping target smoothly
     #ret.startingBrakeRate = 2.0 # release brakes fast
     #ret.startAccel = 1.2 # Accelerate from 0 faster
@@ -103,13 +93,10 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.pcmEnable)
 
     ret.events = events.to_msg()
-    ret.buttonEvents = buttonEvents
 
     # update previous car states
-    self.gas_pressed_prev = ret.gasPressed
-    self.brake_pressed_prev = ret.brakePressed
+
     self.cruise_enabled_prev = ret.cruiseState.enabled
-    self.buttonStatesPrev = self.CS.buttonStates.copy()
 
     self.CS.out = ret.as_reader()
     return self.CS.out
