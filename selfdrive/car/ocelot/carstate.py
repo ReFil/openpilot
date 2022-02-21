@@ -128,7 +128,7 @@ class CarState(CarStateBase):
     checks = [
       ("TOYOTA_STEERING_ANGLE_SENSOR1", 80),
       ("STEERING_STATUS", 80),
-      ("HIM_CTRLS", 10),
+      ("HIM_CTRLS", 0),
       ("BRAKE_STATUS", 80),
       ("GAS_SENSOR", 40),
     ]
