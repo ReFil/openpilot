@@ -4,7 +4,6 @@ const uint32_t CHRYSLER_RT_INTERVAL = 250000;  // 250ms between real time checks
 const int CHRYSLER_MAX_RATE_UP = 3;
 const int CHRYSLER_MAX_RATE_DOWN = 3;
 const int CHRYSLER_MAX_TORQUE_ERROR = 80;    // max torque cmd in excess of torque motor
-const int CHRYSLER_GAS_THRSLD = 30;  // 7% more than 2m/s
 const int CHRYSLER_STANDSTILL_THRSLD = 10;  // about 1m/s
 const CanMsg CHRYSLER_TX_MSGS[] = {{571, 0, 3}, {658, 0, 6}, {678, 0, 8}};
 
@@ -18,12 +17,12 @@ AddrCheckStruct chrysler_addr_checks[] = {
 #define CHRYSLER_ADDR_CHECK_LEN (sizeof(chrysler_addr_checks) / sizeof(chrysler_addr_checks[0]))
 addr_checks chrysler_rx_checks = {chrysler_addr_checks, CHRYSLER_ADDR_CHECK_LEN};
 
-static uint8_t chrysler_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
-  int checksum_byte = GET_LEN(to_push) - 1;
+static uint8_t chrysler_get_checksum(CANPacket_t *to_push) {
+  int checksum_byte = GET_LEN(to_push) - 1U;
   return (uint8_t)(GET_BYTE(to_push, checksum_byte));
 }
 
-static uint8_t chrysler_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
+static uint8_t chrysler_compute_checksum(CANPacket_t *to_push) {
   /* This function does not want the checksum byte in the input data.
   jeep chrysler canbus checksum from http://illmatics.com/Remote%20Car%20Hacking.pdf */
   uint8_t checksum = 0xFFU;
@@ -56,18 +55,18 @@ static uint8_t chrysler_compute_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
   return ~checksum;
 }
 
-static uint8_t chrysler_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
+static uint8_t chrysler_get_counter(CANPacket_t *to_push) {
   // Well defined counter only for 8 bytes messages
   return (uint8_t)(GET_BYTE(to_push, 6) >> 4);
 }
 
-static int chrysler_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
+static int chrysler_rx_hook(CANPacket_t *to_push) {
 
   bool valid = addr_safety_check(to_push, &chrysler_rx_checks,
                                  chrysler_get_checksum, chrysler_compute_checksum,
                                  chrysler_get_counter);
 
-  if (valid && (GET_BUS(to_push) == 0)) {
+  if (valid && (GET_BUS(to_push) == 0U)) {
     int addr = GET_ADDR(to_push);
 
     // Measured eps torque
@@ -80,7 +79,7 @@ static int chrysler_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
     // enter controls on rising edge of ACC, exit controls on ACC off
     if (addr == 500) {
-      int cruise_engaged = ((GET_BYTE(to_push, 2) & 0x38) >> 3) == 7;
+      int cruise_engaged = ((GET_BYTE(to_push, 2) & 0x38U) >> 3) == 7U;
       if (cruise_engaged && !cruise_engaged_prev) {
         controls_allowed = 1;
       }
@@ -100,16 +99,12 @@ static int chrysler_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
     // exit controls on rising edge of gas press
     if (addr == 308) {
-      gas_pressed = ((GET_BYTE(to_push, 5) & 0x7F) != 0) && ((int)vehicle_speed > CHRYSLER_GAS_THRSLD);
+      gas_pressed = ((GET_BYTE(to_push, 5) & 0x7FU) != 0U);
     }
 
     // exit controls on rising edge of brake press
     if (addr == 320) {
-      brake_pressed = (GET_BYTE(to_push, 0) & 0x7) == 5;
-      if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
-        controls_allowed = 0;
-      }
-      brake_pressed_prev = brake_pressed;
+      brake_pressed = (GET_BYTE(to_push, 0) & 0x7U) == 5U;
     }
 
     generic_rx_checks((addr == 0x292));
@@ -117,16 +112,12 @@ static int chrysler_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   return valid;
 }
 
-static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
+static int chrysler_tx_hook(CANPacket_t *to_send) {
 
   int tx = 1;
   int addr = GET_ADDR(to_send);
 
   if (!msg_allowed(to_send, CHRYSLER_TX_MSGS, sizeof(CHRYSLER_TX_MSGS) / sizeof(CHRYSLER_TX_MSGS[0]))) {
-    tx = 0;
-  }
-
-  if (relay_malfunction) {
     tx = 0;
   }
 
@@ -178,7 +169,7 @@ static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // FORCE CANCEL: only the cancel button press is allowed
   if (addr == 571) {
-    if ((GET_BYTE(to_send, 0) != 1) || ((GET_BYTE(to_send, 1) & 1) == 1)) {
+    if ((GET_BYTE(to_send, 0) != 1U) || ((GET_BYTE(to_send, 1) & 1U) == 1U)) {
       tx = 0;
     }
   }
@@ -186,21 +177,21 @@ static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   return tx;
 }
 
-static int chrysler_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
+static int chrysler_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
   int bus_fwd = -1;
   int addr = GET_ADDR(to_fwd);
 
-  if (!relay_malfunction) {
-    // forward CAN 0 -> 2 so stock LKAS camera sees messages
-    if (bus_num == 0) {
-      bus_fwd = 2;
-    }
-    // forward all messages from camera except LKAS_COMMAND and LKAS_HUD
-    if ((bus_num == 2) && (addr != 658) && (addr != 678)) {
-      bus_fwd = 0;
-    }
+  // forward CAN 0 -> 2 so stock LKAS camera sees messages
+  if (bus_num == 0) {
+    bus_fwd = 2;
   }
+
+  // forward all messages from camera except LKAS_COMMAND and LKAS_HUD
+  if ((bus_num == 2) && (addr != 658) && (addr != 678)) {
+    bus_fwd = 0;
+  }
+
   return bus_fwd;
 }
 

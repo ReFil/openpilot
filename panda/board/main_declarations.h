@@ -2,6 +2,7 @@
 void puts(const char *a);
 void puth(unsigned int i);
 void puth2(unsigned int i);
+void puth4(unsigned int i);
 typedef struct board board;
 typedef struct harness_configuration harness_configuration;
 void can_flip_buses(uint8_t bus1, uint8_t bus2);
@@ -18,7 +19,9 @@ bool green_led_enabled = false;
 // heartbeat state
 uint32_t heartbeat_counter = 0;
 bool heartbeat_lost = false;
-bool heartbeat_disabled = false; // set over USB
+bool heartbeat_disabled = false;            // set over USB
+bool heartbeat_engaged = false;             // openpilot enabled, passed in heartbeat USB command
+uint32_t heartbeat_engaged_mismatches = 0;  // count of mismatches between heartbeat_engaged and controls_allowed
 
 // siren state
 bool siren_enabled = false;

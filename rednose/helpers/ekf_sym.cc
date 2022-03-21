@@ -1,4 +1,5 @@
 #include "ekf_sym.h"
+#include "logger/logger.h"
 
 using namespace EKFS;
 using namespace Eigen;
@@ -42,10 +43,10 @@ EKFSym::EKFSym(std::string name, Map<MatrixXdr> Q, Map<VectorXd> x_initial, Map<
   this->init_state(x_initial, P_initial, NAN);
 }
 
-void EKFSym::init_state(Map<VectorXd> state, Map<MatrixXdr> covs, double filter_time) {
+void EKFSym::init_state(Map<VectorXd> state, Map<MatrixXdr> covs, double init_filter_time) {
   this->x = state;
   this->P = covs;
-  this->filter_time = filter_time;
+  this->filter_time = init_filter_time;
   this->augment_times = VectorXd::Zero(this->N);
   this->reset_rewind();
 }
@@ -88,7 +89,7 @@ std::optional<Estimate> EKFSym::predict_and_update_batch(double t, int kind, std
   std::deque<Observation> rewound;
   if (!std::isnan(this->filter_time) && t < this->filter_time) {
     if (this->rewind_t.empty() || t < this->rewind_t.front() || t < this->rewind_t.back() - this->max_rewind_age) {
-      std::cout << "observation too old at " << t << " with filter at " << this->filter_time << ", ignoring" << std::endl;
+      LOGD("observation too old at %d with filter at %d, ignoring!", t, this->filter_time);
       return std::nullopt;
     }
     rewound = this->rewind(t);

@@ -1,10 +1,6 @@
 using Cxx = import "./include/c++.capnp";
 $Cxx.namespace("cereal");
 
-using Java = import "./include/java.capnp";
-$Java.package("ai.comma.openpilot.cereal");
-$Java.outerClassname("Car");
-
 @0x8e2af1e708af8b8d;
 
 # ******* events causing controls state machine transition *******
@@ -73,7 +69,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     preLaneChangeLeft @57;
     preLaneChangeRight @58;
     laneChange @59;
-    communityFeatureDisallowed @62;
     lowMemory @63;
     stockAeb @64;
     ldw @65;
@@ -88,7 +83,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     startupNoCar @76;
     startupNoControl @77;
     startupMaster @78;
-    startupFuzzyFingerprint @97;
     startupNoFw @104;
     fcw @79;
     steerSaturated @80;
@@ -109,10 +103,13 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     wideRoadCameraError @102;
     localizerMalfunction @103;
     highCpuUsage @105;
+    cruiseMismatch @106;
+    lkasDisabled @107;
 
-    driverMonitorLowAccDEPRECATED @68;
     radarCanErrorDEPRECATED @15;
+    communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
+    driverMonitorLowAccDEPRECATED @68;
     gasUnavailableDEPRECATED @3;
     dataNeededDEPRECATED @16;
     modelCommIssueDEPRECATED @27;
@@ -130,6 +127,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     neosUpdateRequiredDEPRECATED @88;
     modelLagWarningDEPRECATED @93;
     startupOneplusDEPRECATED @82;
+    startupFuzzyFingerprintDEPRECATED @97;
   }
 }
 
@@ -148,12 +146,13 @@ struct CarState {
   wheelSpeeds @2 :WheelSpeeds;
 
   # gas pedal, 0.0-1.0
-  gas @3 :Float32;        # this is user + computer
+  gas @3 :Float32;        # this is user pedal only
   gasPressed @4 :Bool;    # this is user pedal only
 
   # brake pedal, 0.0-1.0
   brake @5 :Float32;      # this is user pedal only
   brakePressed @6 :Bool;  # this is user pedal only
+  brakeHoldActive @38 :Bool;
 
   # steering wheel
   steeringAngleDeg @7 :Float32;
@@ -292,19 +291,29 @@ struct CarControl {
   enabled @0 :Bool;
   active @7 :Bool;
 
+  # Actuator commands as computed by controlsd
   actuators @6 :Actuators;
+
+  # Any car specific rate limits or quirks applied by
+  # the CarController are reflected in actuatorsOutput
+  # and matches what is sent to the car
+  actuatorsOutput @10 :Actuators;
+
+  roll @8 :Float32;
+  pitch @9 :Float32;
 
   cruiseControl @4 :CruiseControl;
   hudControl @5 :HUDControl;
 
   struct Actuators {
     # range from 0.0 - 1.0
-    gasDEPRECATED @0: Float32;
-    brakeDEPRECATED @1: Float32;
+    gas @0: Float32;
+    brake @1: Float32;
     # range from -1.0 - 1.0
     steer @2: Float32;
     steeringAngleDeg @3: Float32;
 
+    speed @6: Float32; # m/s
     accel @4: Float32; # m/s^2
     longControlState @5: LongControlState;
 
@@ -312,7 +321,8 @@ struct CarControl {
       off @0;
       pid @1;
       stopping @2;
-      starting @3;
+
+      startingDEPRECATED @3;
     }
 
   }
@@ -351,14 +361,17 @@ struct CarControl {
 
     enum AudibleAlert {
       none @0;
-      chimeEngage @1;
-      chimeDisengage @2;
-      chimeError @3;
-      chimeWarning1 @4;
-      chimeWarning2 @5;
-      chimeWarningRepeat @6;
-      chimePrompt @7;
-      chimeWarning2Repeat @8;
+
+      engage @1;
+      disengage @2;
+      refuse @3;
+
+      warningSoft @4;
+      warningImmediate @5;
+
+      prompt @6;
+      promptRepeat @7;
+      promptDistracted @8;
     }
   }
 
@@ -379,14 +392,13 @@ struct CarParams {
   enableDsu @5 :Bool;        # driving support unit
   enableApgs @6 :Bool;       # advanced parking guidance system
   enableBsm @56 :Bool;       # blind spot monitoring
-  hasStockCamera @57 :Bool;  # factory LKAS/LDW camera is present
+  flags @64 :UInt32;         # flags for car specific quirks
 
   minEnableSpeed @7 :Float32;
   minSteerSpeed @8 :Float32;
   maxSteeringAngleDeg @54 :Float32;
-  safetyModel @9 :SafetyModel;
-  safetyModelPassive @42 :SafetyModel = silent;
-  safetyParam @10 :Int16;
+  safetyConfigs @62 :List(SafetyConfig);
+  unsafeMode @65 :Int16;
 
   steerMaxBP @11 :List(Float32);
   steerMaxV @12 :List(Float32);
@@ -419,18 +431,18 @@ struct CarParams {
   steerLimitTimer @47 :Float32;  # time before steerLimitAlert is issued
 
   vEgoStopping @29 :Float32; # Speed at which the car goes into stopping state
+  vEgoStarting @59 :Float32; # Speed at which the car goes into starting state
   directAccelControl @30 :Bool; # Does the car have direct accel control or just gas/brake
   stoppingControl @31 :Bool; # Does the car allows full control even at lows speeds when stopping
-  startAccel @32 :Float32; # Required acceleraton to overcome creep braking
+  stopAccel @60 :Float32; # Required acceleraton to keep vehicle stationary
   steerRateCost @33 :Float32; # Lateral MPC cost on steering rate
   steerControlType @34 :SteerControlType;
   radarOffCan @35 :Bool; # True when radar objects aren't visible on CAN
-  minSpeedCan @51 :Float32; # Minimum vehicle speed from CAN (below this value drops to 0)
   stoppingDecelRate @52 :Float32; # m/s^2/s while trying to stop
-  startingAccelRate @53 :Float32; # m/s^2/s while trying to start
 
   steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
-  longitudinalActuatorDelay @58 :Float32; # Gas/Brake actuator delay in seconds
+  longitudinalActuatorDelayLowerBound @61 :Float32; # Gas/Brake actuator delay in seconds, lower bound
+  longitudinalActuatorDelayUpperBound @58 :Float32; # Gas/Brake actuator delay in seconds, upper bound
   openpilotLongitudinalControl @37 :Bool; # is openpilot doing the longitudinal control?
   carVin @38 :Text; # VIN number queried during fingerprinting
   dashcamOnly @41: Bool;
@@ -438,9 +450,15 @@ struct CarParams {
   carFw @44 :List(CarFw);
 
   radarTimeStep @45: Float32 = 0.05;  # time delta between radar updates, 20Hz is very standard
-  communityFeature @46: Bool;  # true if a community maintained feature is detected
   fingerprintSource @49: FingerprintSource;
   networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
+
+  wheelSpeedFactor @63 :Float32; # Multiplier on wheels speeds to computer actual speeds
+
+  struct SafetyConfig {
+    safetyModel @0 :SafetyModel;
+    safetyParam @1 :Int16;
+  }
 
   struct LateralParams {
     torqueBP @0 :List(Int32);
@@ -515,11 +533,12 @@ struct CarParams {
     allOutput @17;
     gmAscm @18;
     noOutput @19;  # like silent but without silent CAN TXs
-    hondaBoschHarness @20;
+    hondaBosch @20;
     volkswagenPq @21;
     subaruLegacy @22;  # pre-Global platform
     hyundaiLegacy @23;
     hyundaiCommunity @24;
+    stellantis @25;
   }
 
   enum SteerControlType {
@@ -578,5 +597,13 @@ struct CarParams {
   }
 
   enableCameraDEPRECATED @4 :Bool;
-  isPandaBlackDEPRECATED @39: Bool;
+  isPandaBlackDEPRECATED @39 :Bool;
+  hasStockCameraDEPRECATED @57 :Bool;
+  safetyParamDEPRECATED @10 :Int16;
+  safetyModelDEPRECATED @9 :SafetyModel;
+  safetyModelPassiveDEPRECATED @42 :SafetyModel = silent;
+  minSpeedCanDEPRECATED @51 :Float32;
+  startAccelDEPRECATED @32 :Float32;
+  communityFeatureDEPRECATED @46: Bool;
+  startingAccelRateDEPRECATED @53 :Float32;
 }

@@ -3,7 +3,7 @@ import os
 import requests
 from datetime import datetime, timedelta
 from common.basedir import PERSIST
-from selfdrive.version import version
+from selfdrive.version import get_version
 
 API_HOST = os.getenv('API_HOST', 'https://api.retropilot.org')
 
@@ -39,8 +39,8 @@ class Api():
 def api_get(endpoint, method='GET', timeout=None, access_token=None, **params):
   headers = {}
   if access_token is not None:
-    headers['Authorization'] = "JWT "+access_token
+    headers['Authorization'] = "JWT " + access_token
 
-  headers['User-Agent'] = "openpilot-" + version
+  headers['User-Agent'] = "openpilot-" + get_version()
 
   return requests.request(method, API_HOST + "/" + endpoint, timeout=timeout, headers=headers, params=params)
