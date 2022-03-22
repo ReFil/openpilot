@@ -76,7 +76,7 @@ class CarState(CarStateBase):
     if bool(self.buttonStates["setCruise"]) and not self.oldEnabled:
       self.enabled = not self.enabled
       if self.enabled:
-          self.setSpeed = (int_rnd((ret.vEgo * CV.MS_TO_MPH)/5) * 5)
+          self.setSpeed = (int(round((ret.vEgo * CV.MS_TO_MPH)/5)) * 5)
           if ret.standstill:
             self.setSpeed = 10
 
