@@ -2,7 +2,7 @@
 import time
 from selfdrive.car.interfaces import RadarInterfaceBase
 
-class class RadarInterface(RadarInterfaceBase):
+class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     self.pts = {}
     self.delay = 0
