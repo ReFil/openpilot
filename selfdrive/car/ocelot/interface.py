@@ -24,8 +24,7 @@ class CarInterface(CarInterfaceBase):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
 
     ret.carName = "ocelot"
-    ret.safetyModel = car.CarParams.SafetyModel.allOutput
-
+    ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.allOutput)]
     ret.steerActuatorDelay = 0.15
     ret.steerLimitTimer = 0.4
 
