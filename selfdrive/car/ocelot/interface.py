@@ -31,7 +31,6 @@ class CarInterface(CarInterfaceBase):
     if candidate == CAR.SMART_ROADSTER_COUPE:
         set_long_tune(ret.longitudinalTuning, LongTunes.SMART_PEDAL)
         set_lat_tune(ret.lateralTuning, LatTunes.SMART_PID)
-        ret.safetyParam = 100
         ret.wheelbase = 2.36
         ret.steerRatio = 20
         tire_stiffness_factor = 0.444
