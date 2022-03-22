@@ -6,8 +6,7 @@ def create_steer_command(packer, steer, steer_req, raw_cnt):
   }
   return packer.make_can_msg("STEERING_COMMAND", 1, values)
 
-def create_pedal_command(packer, gas_amount, raw_cnt):
-  enable = gas_amount > 0.001
+def create_pedal_command(packer, enable, gas_amount, raw_cnt):
   values = {
     "ENABLE": enable,
     "COUNTER": raw_cnt,

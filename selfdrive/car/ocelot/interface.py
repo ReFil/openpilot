@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from cereal import car
 from selfdrive.car.ocelot.values import CAR, BUTTON_STATES
+from selfdrive.car.ocelot.tunes import LatTunes, LongTunes, set_long_tune, set_lat_tune
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
-from selfdrive.swaglog import cloudlog
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.config import Conversions as CV
 
@@ -24,17 +24,14 @@ class CarInterface(CarInterfaceBase):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
 
     ret.carName = "ocelot"
-    ret.lateralTuning.init('pid')
     ret.safetyModel = car.CarParams.SafetyModel.allOutput
 
     ret.steerActuatorDelay = 0.15
     ret.steerLimitTimer = 0.4
 
     if candidate == CAR.SMART_ROADSTER_COUPE:
-        ret.lateralTuning.init('pid')
-        ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.05], [0.008]]
-        ret.lateralTuning.pid.kf = 0.   #was 0.00007818594
+        set_long_tune(ret.longitudinalTuning, LongTunes.SMART_PEDAL)
+        set_lat_tune(ret.lateralTuning, LatTunes.SMART_PID)
         ret.safetyParam = 100
         ret.wheelbase = 2.36
         ret.steerRatio = 20
@@ -52,17 +49,7 @@ class CarInterface(CarInterfaceBase):
     ret.openpilotLongitudinalControl = True
     ret.minEnableSpeed = -1.
 
-    #Longitudinal deadzone values
-    ret.longitudinalTuning.deadzoneBP = [0., 9.]
-    ret.longitudinalTuning.deadzoneV = [0., .15]
 
-    #Longitudinal Proportional values
-    ret.longitudinalTuning.kpBP = [0., 5., 35.]
-    ret.longitudinalTuning.kpV = [1., 0.8, 0.5]
-
-    #Longitudinal Integral Values
-    ret.longitudinalTuning.kiBP = [0., 55.]
-    ret.longitudinalTuning.kiV = [0.3, 0.2]
 
     #ret.stoppingBrakeRate = 0.16 # reach stopping target smoothly
     #ret.startingBrakeRate = 2.0 # release brakes fast
@@ -103,10 +90,7 @@ class CarInterface(CarInterfaceBase):
 
   #Pass in a car.CarControl, to be called @ 100hz
   def apply(self, c):
-    can_sends = self.CC.update(c.enabled, self.CS, self.frame,
-                               c.actuators, c.cruiseControl.cancel,
-                               c.hudControl.visualAlert, c.hudControl.leftLaneVisible,
-                               c.hudControl.rightLaneVisible, c.hudControl.leadVisible,
-                               c.hudControl.leftLaneDepart, c.hudControl.rightLaneDepart)
+    ret = self.CC.update(c.enabled, c.active, self.CS, self.frame,
+                               c.actuators, c.cruiseControl.cancel)
     self.frame += 1
-    return can_sends
+    return ret

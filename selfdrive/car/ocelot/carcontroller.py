@@ -1,5 +1,5 @@
 from cereal import car
-from common.numpy_fast import clip
+from common.numpy_fast import clip, interp
 from selfdrive.config import Conversions as CV
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.ocelot.ocelotcan import create_steer_command, create_ibst_command, \
@@ -12,8 +12,8 @@ VisualAlert = car.CarControl.HUDControl.VisualAlert
 # Accel limits
 
 ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
-PEDAL_SCALE = 5
-BRAKE_SCALE = 5
+PEDAL_SCALE = 1
+BRAKE_SCALE = 1
 
 
 
@@ -28,9 +28,10 @@ class CarController():
     self.steer_rate_limited = False
 
     self.packer = CANPacker(dbc_name)
+    self.gas = 0
+    self.brake = 0
 
-  def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, hud_alert,
-             left_line, right_line, lead, left_lane_depart, right_lane_depart):
+  def update(self, active, enabled, CS, frame, actuators, pcm_cancel_cmd):
 
     # *** compute control surfaces ***
 
@@ -51,12 +52,14 @@ class CarController():
       self.last_fault_frame = frame
 
     # Cut steering for 2s after fault
-    if not enabled or (frame - self.last_fault_frame < 200):
+    if not active or (frame - self.last_fault_frame < 200):
       apply_steer = 0
       apply_steer_req = 0
     else:
       apply_steer_req = 1
 
+    self.gas = apply_gas
+    self.brakes= apply_brakes
 
     can_sends = []
 
@@ -68,12 +71,17 @@ class CarController():
 
 
     can_sends.append(create_steer_command(self.packer, apply_steer, apply_steer_req, frame))
-    can_sends.append(create_ibst_command(self.packer, enabled, apply_brakes, frame))
-    can_sends.append(create_pedal_command(self.packer, apply_gas, frame))
+    can_sends.append(create_ibst_command(self.packer, active, apply_brakes, frame))
+    can_sends.append(create_pedal_command(self.packer, active, apply_gas, frame))
 
     #UI mesg is at 100Hz but we send asap if:
     if (frame % 100 == 0):
       can_sends.append(create_msg_command(self.packer, enabled, CS.out.cruiseState.speed * CV.MS_TO_MPH, CS.out.vEgo * CV.MS_TO_MPH))
 
+    new_actuators = actuators.copy()
+    new_actuators.steer = apply_steer / CarControllerParams.STEER_MAX
+    new_actuators.gas = self.gas
+    new_actuators.brake = self.brake
 
-    return can_sends
+
+    return new_actuators, can_sends
