@@ -2,7 +2,7 @@
 from cereal import car
 from selfdrive.car.ocelot.values import CAR, BUTTON_STATES
 from selfdrive.car.ocelot.tunes import LatTunes, LongTunes, set_long_tune, set_lat_tune
-from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.config import Conversions as CV
 
