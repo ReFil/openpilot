@@ -7,6 +7,7 @@ class RadarInterface(RadarInterfaceBase):
     self.pts = {}
     self.delay = 0
     self.no_radar_sleep = 0
+    self.radar_ts = 0.02
 
   def update(self, can_strings):
     return super().update(None)
