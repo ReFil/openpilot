@@ -1,5 +1,5 @@
 from cereal import car
-from common.numpy_fast import mean, int_rnd
+from common.numpy_fast import mean
 from opendbc.can.can_define import CANDefine
 from selfdrive.car.interfaces import CarStateBase
 from opendbc.can.parser import CANParser
