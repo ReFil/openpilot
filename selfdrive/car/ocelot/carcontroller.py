@@ -78,7 +78,7 @@ class CarController():
       can_sends.append(create_msg_command(self.packer, enabled, CS.out.cruiseState.speed * CV.MS_TO_MPH, CS.out.vEgo * CV.MS_TO_MPH))
 
     new_actuators = actuators.copy()
-    new_actuators.steer = apply_steer / CarControllerParams.STEER_MAX
+    new_actuators.steer = apply_steer / SteerLimitParams.STEER_MAX
     new_actuators.gas = self.gas
     new_actuators.brake = self.brake
 

@@ -8,6 +8,4 @@ class RadarInterface(RadarInterfaceBase):
     self.delay = 0
 
   def update(self, can_strings):
-    ret = car.RadarData.new_message()
-    time.sleep(0.02)  # radard runs on RI updates
-    return ret
+    return super().update(None)
