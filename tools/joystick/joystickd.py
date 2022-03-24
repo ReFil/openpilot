@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import argparse
-from inputs import get_gamepad
 
 import cereal.messaging as messaging
 from common.numpy_fast import interp, clip
