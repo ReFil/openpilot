@@ -46,8 +46,7 @@ class CarController():
     apply_steer = apply_std_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorque, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
     self.last_steer = apply_steer
-    print(self.steer_rate_limited)
-    print(apply_steer)
+
     # only cut torque when steer state is a known fault
     if CS.brakeUnavailable:
       self.last_fault_frame = frame
@@ -76,7 +75,7 @@ class CarController():
     can_sends.append(create_pedal_command(self.packer, active, apply_gas, frame))
 
     #UI mesg is at 100Hz but we send asap if:
-    if (frame % 100 == 0):
+    if (frame % 10 == 0):
       can_sends.append(create_msg_command(self.packer, enabled, CS.out.cruiseState.speed * CV.MS_TO_MPH, CS.out.vEgo * CV.MS_TO_MPH))
 
     new_actuators = actuators.copy()
