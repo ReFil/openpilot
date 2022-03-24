@@ -201,6 +201,7 @@ void tick_handler(void) {
       } else {
 
       }
+      puth(controls_allowed);
 
       // exit controls allowed if unused by openpilot for a few seconds
       if (controls_allowed && !heartbeat_engaged) {
