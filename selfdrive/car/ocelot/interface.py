@@ -25,7 +25,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.carName = "ocelot"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.allOutput)]
-    ret.steerActuatorDelay = 0.15
+    ret.steerActuatorDelay = 0.04
     ret.steerLimitTimer = 0.4
 
     if candidate == CAR.SMART_ROADSTER_COUPE:

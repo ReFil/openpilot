@@ -17,11 +17,11 @@ def set_long_tune(tune, name):
 
     #Longitudinal Proportional values
     tune.kpBP = [0., 5., 35.]
-    tune.kpV = [1., 0.8, 0.5]
+    tune.kpV = [0.45, 0.35, 0.3]
 
     #Longitudinal Integral Values
     tune.kiBP = [0., 55.]
-    tune.kiV = [0.3, 0.2]
+    tune.kiV = [0.13, 0.1]
   else:
     raise NotImplementedError('This longitudinal tune does not exist')
 
