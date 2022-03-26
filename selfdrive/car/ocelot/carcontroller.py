@@ -59,7 +59,7 @@ class CarController():
       apply_steer_req = 1
 
     self.gas = apply_gas
-    self.brakes= apply_brakes
+    self.brake= apply_brakes
 
     can_sends = []
 
