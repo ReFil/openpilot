@@ -11,8 +11,8 @@ VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 # Accel limits
 
-PEDAL_SCALE = 1
-BRAKE_SCALE = 1
+PEDAL_SCALE = 2
+BRAKE_SCALE = 2
 
 
 
