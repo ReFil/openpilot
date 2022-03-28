@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import time
+from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
 
 class RadarInterface(RadarInterfaceBase):
