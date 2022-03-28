@@ -1,7 +1,7 @@
 from cereal import car
 from common.numpy_fast import mean
 from opendbc.can.can_define import CANDefine
-from selfdrive.car.interfaces import CarStateBase update_blinker_from_lamp
+from selfdrive.car.interfaces import CarStateBase
 from opendbc.can.parser import CANParser
 from selfdrive.config import Conversions as CV
 from selfdrive.car.ocelot.values import CAR, DBC, STEER_THRESHOLD, BUTTON_STATES
