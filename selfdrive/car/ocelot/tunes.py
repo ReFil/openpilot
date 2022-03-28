@@ -16,12 +16,10 @@ def set_long_tune(tune, name):
     tune.deadzoneV = [0., .15]
 
     #Longitudinal Proportional values
-    tune.kpBP = [0., 5., 35.]
-    tune.kpV = [0.45, 0.35, 0.3]
-
-    #Longitudinal Integral Values
-    tune.kiBP = [0., 55.]
-    tune.kiV = [0.13, 0.1]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [1.3, 1.0, 0.7]
+    tune.kiBP = [0., 5., 12., 20., 27.]
+    tune.kiV = [.35, .23, .20, .17, .1]
   else:
     raise NotImplementedError('This longitudinal tune does not exist')
 
