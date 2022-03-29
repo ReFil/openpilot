@@ -17,9 +17,9 @@ def set_long_tune(tune, name):
 
     #Longitudinal Proportional values
     tune.kpBP = [0., 5., 20.]
-    tune.kpV = [1.3, 1.0, 0.7]
+    tune.kpV = [0.45, 1.0, 0.7]
     tune.kiBP = [0., 5., 12., 20., 27.]
-    tune.kiV = [.35, .23, .20, .17, .1]
+    tune.kiV = [.13, .23, .20, .17, .1]
   else:
     raise NotImplementedError('This longitudinal tune does not exist')
 
@@ -29,7 +29,7 @@ def set_lat_tune(tune, name):
   if name == LatTunes.SMART_PID:
     tune.init('pid')
     tune.pid.kiBP, tune.pid.kpBP = [[0.], [0.]]
-    tune.pid.kpV, tune.pid.kiV = [[0.0045], [0.008]]
-    tune.pid.kf = 0.00007818594
+    tune.pid.kpV, tune.pid.kiV = [[0.045], [0.008]]
+    tune.pid.kf = 0.000078
   else:
     raise NotImplementedError('This lateral tune does not exist')
