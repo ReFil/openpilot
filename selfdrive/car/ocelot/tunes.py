@@ -17,7 +17,7 @@ def set_long_tune(tune, name):
 
     #Longitudinal Proportional values
     tune.kpBP = [0., 5., 20.]
-    tune.kpV = [0.45, 1.0, 0.7]
+    tune.kpV = [0.45, 0.6, 0.7]
     tune.kiBP = [0., 5., 12., 20., 27.]
     tune.kiV = [.13, .23, .20, .17, .1]
   else:
