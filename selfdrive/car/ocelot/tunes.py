@@ -16,8 +16,8 @@ def set_long_tune(tune, name):
     tune.deadzoneV = [0., .15]
 
     #Longitudinal Proportional values
-    tune.kpBP = [0., 5., 20.]
-    tune.kpV = [0.45, 0.6, 0.7]
+    tune.kpBP = [0., 5., 20., 30.]
+    tune.kpV = [0.4, 0.6, 0.7, 0.75]
     tune.kiBP = [0., 5., 12., 20., 27.]
     tune.kiV = [.13, .23, .20, .17, .1]
   else:
