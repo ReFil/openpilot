@@ -28,8 +28,8 @@ def set_long_tune(tune, name):
 def set_lat_tune(tune, name):
   if name == LatTunes.SMART_PID:
     tune.init('pid')
-    tune.pid.kiBP, tune.pid.kpBP = [[0.], [0.]]
-    tune.pid.kpV, tune.pid.kiV = [[0.058], [0.045]]
+    tune.pid.kiBP, tune.pid.kpBP = [[0., 20.0], [0., 20.0]]
+    tune.pid.kpV, tune.pid.kiV = [[0.058, 0.05], [0.045, 0.03]]
     tune.pid.kf = 0.00007
   else:
     raise NotImplementedError('This lateral tune does not exist')

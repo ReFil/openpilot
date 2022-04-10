@@ -35,10 +35,10 @@ class CarController():
     # *** compute control surfaces ***
 
     # gas and brake
-    MAX_INTERCEPTOR_GAS = interp(CS.out.vEgo, [0., 2., 6., 35], [0.2, 0.15, 0.3, 0.45])
+    MAX_INTERCEPTOR_GAS = interp(CS.out.vEgo, [0., 2., 6., 35], [0.3, 0.25, 0.3, 0.45])
     apply_gas = clip(actuators.accel / PEDAL_SCALE, 0., MAX_INTERCEPTOR_GAS)
 
-    MAX_BRAKE = interp(CS.out.vEgo, [0., 50.], [.55, .55])
+    MAX_BRAKE = interp(CS.out.vEgo, [0., 50.], [.65, .55])
     apply_brakes = clip(-actuators.accel / BRAKE_SCALE, 0., MAX_BRAKE)
 
     # steer torque
@@ -67,7 +67,7 @@ class CarController():
     #print("steer {0} {1} {2} {3}".format(apply_steer, min_lim, max_lim, CS.steer_torque_motor)
 
     if CS.out.vEgo < 0.1 and apply_gas < 0.01:
-      apply_brakes = 0.25
+      apply_brakes = 0.4
 
 
     can_sends.append(create_steer_command(self.packer, apply_steer, apply_steer_req, frame))
