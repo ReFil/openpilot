@@ -35,10 +35,10 @@ class CarController():
     # *** compute control surfaces ***
 
     # gas and brake
-    MAX_INTERCEPTOR_GAS = interp(CS.out.vEgo, [0., 2., 6., 35], [0.3, 0.25, 0.3, 0.45])
+    MAX_INTERCEPTOR_GAS = interp(CS.out.vEgo, [0., 2., 6., 35], [0.3, 0.25, 0.3, 0.5])
     apply_gas = clip(actuators.accel / PEDAL_SCALE, 0., MAX_INTERCEPTOR_GAS)
 
-    MAX_BRAKE = interp(CS.out.vEgo, [0., 50.], [.65, .55])
+    MAX_BRAKE = interp(CS.out.vEgo, [0., 50.], [.65, .6])
     apply_brakes = clip(-actuators.accel / BRAKE_SCALE, 0., MAX_BRAKE)
 
     # steer torque
