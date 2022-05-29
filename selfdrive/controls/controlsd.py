@@ -259,9 +259,6 @@ class Controls:
 
       if safety_mismatch or self.mismatch_counter >= 200:
         self.events.add(EventName.controlsMismatch)
-        print("dong")
-        print(safety_mismatch)
-        print(self.mismatch_counter)
 
       if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
         self.events.add(EventName.relayMalfunction)
@@ -321,10 +318,10 @@ class Controls:
 
     # TODO: fix simulator
     if not SIMULATION:
-      #if not NOSENSOR:
-        #if not self.sm['liveLocationKalman'].gpsOK and (self.distance_traveled > 1000):
+      if not NOSENSOR:
+        if not self.sm['liveLocationKalman'].gpsOK and (self.distance_traveled > 1000):
           # Not show in first 1 km to allow for driving out of garage. This event shows after 5 minutes
-          # self.events.add(EventName.noGps)
+          self.events.add(EventName.noGps)
       if not self.sm.all_alive(self.camera_packets):
         self.events.add(EventName.cameraMalfunction)
       if self.sm['modelV2'].frameDropPerc > 20:
