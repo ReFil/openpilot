@@ -60,6 +60,7 @@ void Sidebar::updateState(const UIState &s) {
     connectStatus = params.getBool("PrimeRedirected") ? ItemStatus{"NO\nPRIME", danger_color} : ItemStatus{"CONNECT\nOFFLINE", warning_color};
   } else {
     connectStatus = nanos_since_boot() - last_ping < 80e9 ? ItemStatus{"CONNECT\nONLINE", good_color} : ItemStatus{"CONNECT\nERROR", danger_color};
+  }
   setProperty("connectStatus", QVariant::fromValue(connectStatus));
 
   ItemStatus tempStatus = {"TEMP\nHIGH", danger_color};
