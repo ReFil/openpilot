@@ -30,6 +30,6 @@ def set_lat_tune(tune, name):
     tune.init('pid')
     tune.pid.kiBP, tune.pid.kpBP = [[0., 20.0], [0., 20.0]]
     tune.pid.kpV, tune.pid.kiV = [[0.05, 0.04], [0.015, 0.008]]
-    tune.pid.kf = 0.000013
+    tune.pid.kf = 0.00003
   else:
     raise NotImplementedError('This lateral tune does not exist')
