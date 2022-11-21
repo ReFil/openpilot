@@ -3,7 +3,7 @@ from common.numpy_fast import mean
 from opendbc.can.can_define import CANDefine
 from selfdrive.car.interfaces import CarStateBase
 from opendbc.can.parser import CANParser
-from selfdrive.config import Conversions as CV
+from common.conversions import Conversions as CV
 from selfdrive.car.ocelot.values import CAR, DBC, STEER_THRESHOLD, BUTTON_STATES
 
 class CarState(CarStateBase):
@@ -36,6 +36,7 @@ class CarState(CarStateBase):
         ret.wheelSpeeds.rr = cp_body.vl["SMARTROADSTERWHEELSPEEDS"]['WHEELSPEED_RR'] * CV.MPH_TO_MS
         can_gear = int(cp_body.vl["GEAR_PACKET"]['GEAR'])
         ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+        ret.parkingBrake = bool(cp_body.vl["BODYCONTROL"]['HAND_BRAKE'])
         self.engineRPM = cp_body.vl["GEAR_PACKET"]["RPM"]
 
     #iBooster data
@@ -59,7 +60,7 @@ class CarState(CarStateBase):
     ret.steeringTorque = cp.vl["STEERING_STATUS"]['STEERING_TORQUE_DRIVER']
     ret.steeringTorqueEps = cp.vl["STEERING_STATUS"]['STEERING_TORQUE_EPS']
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
-    ret.steerError = bool(cp.vl["STEERING_STATUS"]['STEERING_OK'] == 0)
+    ret.steerFaultPermanent = bool(cp.vl["STEERING_STATUS"]['STEERING_OK'] == 0)
 
     ret.cruiseState.available = True
     ret.cruiseState.standstill = False
@@ -149,6 +150,7 @@ class CarState(CarStateBase):
         signals.append(("LEFT_DOOR", "BODYCONTROL",0))
         signals.append(("LEFT_SIGNAL", "BODYCONTROL",0))
         signals.append(("RIGHT_SIGNAL", "BODYCONTROL",0))
+        signals.append(("HAND_BRAKE", "BODYCONTROL",0))
         signals.append(("ESP_STATUS", "ABS",0))
         signals.append(("WHEELSPEED_FL", "SMARTROADSTERWHEELSPEEDS",0))
         signals.append(("WHEELSPEED_FR", "SMARTROADSTERWHEELSPEEDS",0))
