@@ -67,6 +67,7 @@ unsigned int chrysler_checksum(uint32_t address, const Signal &sig, const std::v
 // Static lookup table for fast computation of CRCs
 uint8_t crc8_lut_8h2f[256]; // CRC8 poly 0x2F, aka 8H2F/AUTOSAR
 uint16_t crc16_lut_xmodem[256]; // CRC16 poly 0x1021, aka XMODEM
+uint8_t crc8_lut_1d[256];
 
 void gen_crc_lookup_table_8(uint8_t poly, uint8_t crc_lut[]) {
   uint8_t crc;
@@ -105,6 +106,7 @@ void init_crc_lookup_tables() {
   // At init time, set up static lookup tables for fast CRC computation.
   gen_crc_lookup_table_8(0x2F, crc8_lut_8h2f);    // CRC-8 8H2F/AUTOSAR for Volkswagen
   gen_crc_lookup_table_16(0x1021, crc16_lut_xmodem);    // CRC-16 XMODEM for HKG CAN FD
+  gen_crc_lookup_table_8(0x1D, crc8_lut_1d);      // CRC-8 SAE-J18650  for Retropilot
 }
 
 unsigned int volkswagen_mqb_checksum(uint32_t address, const Signal &sig, const std::vector<uint8_t> &d) {
@@ -241,6 +243,19 @@ unsigned int hkg_can_fd_checksum(uint32_t address, const Signal &sig, const std:
   } else if (d.size() == 32) {
     crc ^= 0x9f5b;
   }
+
+  return crc;
+}
+
+unsigned int ocelot_checksum(uint32_t address, const Signal &sig, const std::vector<uint8_t> &d) {
+  uint8_t crc = 0xFF; // Standard init value for CRC8
+
+  // CRC the payload, skipping over the first byte where the CRC lives.
+  for (int i = 1; i < d.size(); i++) {
+    crc ^= d[i] & 0xFF;
+    crc = crc8_lut_1d[crc] ^ crc << 8 ;
+  }
+  crc = crc ^ 0xFF; //final xor
 
   return crc;
 }
