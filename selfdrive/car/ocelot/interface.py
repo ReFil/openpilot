@@ -31,11 +31,15 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.deadzoneV = [0., .15]
 
       #Longitudinal Proportional values
-      ret.longitudinalTuning.kpBP = [0., 5., 20., 30.]
-      ret.longitudinalTuning.kpV = [0.4, 0.6, 0.75, 0.8]
-      ret.longitudinalTuning.kiBP = [0., 5., 12., 20., 27.]
-      ret.longitudinalTuning.kiV = [.3, .2, .1, .05, .03]
+      #ret.longitudinalTuning.kpBP = [0., 5., 20., 30.]
+      #ret.longitudinalTuning.kpV = [0.4, 0.6, 0.75, 0.8]
+      #ret.longitudinalTuning.kiBP = [0., 5., 12., 20., 27.]
+      #ret.longitudinalTuning.kiV = [.3, .2, .1, .05, .03]
 
+      ret.longitudinalTuning.kpBP = [0., 5., 35.]
+      ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
+      ret.longitudinalTuning.kiBP = [0., 35.]
+      ret.longitudinalTuning.kiV = [0.18, 0.12]
 
 
       ret.lateralTuning.init('pid')

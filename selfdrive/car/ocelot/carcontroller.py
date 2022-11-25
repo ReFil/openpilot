@@ -20,7 +20,7 @@ class CarController():
   def __init__(self, dbc_name, CP, VM):
 
     self.last_steer = 0
-    self.alert_active = False
+    self.frame = 0
     self.last_standstill = False
 
     self.last_fault_frame = -200
@@ -30,13 +30,25 @@ class CarController():
     self.gas = 0
     self.brake = 0
 
-  def update(self, active, enabled, CS, frame, actuators, pcm_cancel_cmd):
+  def update(self, CC, CS):
+    actuators = CC.actuators
 
     # *** compute control surfaces ***
 
     # gas and brake
-    MAX_INTERCEPTOR_GAS = interp(CS.out.vEgo, [0., 2., 6., 35], [0.3, 0.25, 0.3, 0.5])
-    apply_gas = clip(actuators.accel / PEDAL_SCALE, 0., MAX_INTERCEPTOR_GAS)
+    wind_brake = interp(CS.out.vEgo, [0.0, 2.3, 35.0], [0.001, 0.002, 0.15])
+    # Mollify low speed behaviour
+    gas_mult = interp(CS.out.vEgo, [0., 10.], [0.4, 1.0])
+    # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
+    # This prevents unexpected pedal range rescaling
+    # Sending non-zero gas when OP is not enabled will cause the PCM not to respond to throttle as expected
+    # when you do enable.
+    if CC.longActive:
+      apply_gas = clip(gas_mult * ((actuators.accel / PEDAL_SCALE) + wind_brake * 3 / 4), 0., 0.8)
+    else:
+      apply_gas = 0.0
+    #MAX_INTERCEPTOR_GAS = interp(CS.out.vEgo, [0., 2., 6., 35], [0.3, 0.25, 0.3, 0.5])
+    #apply_gas = clip(actuators.accel / PEDAL_SCALE, 0., MAX_INTERCEPTOR_GAS)
 
     MAX_BRAKE = interp(CS.out.vEgo, [0., 50.], [.65, .6])
     apply_brakes = clip(-actuators.accel / BRAKE_SCALE, 0., MAX_BRAKE)
@@ -49,10 +61,10 @@ class CarController():
 
     # only cut torque when steer state is a known fault
     if CS.brakeUnavailable:
-      self.last_fault_frame = frame
+      self.last_fault_frame = self.frame
 
     # Cut steering for 2s after fault
-    if not active or (frame - self.last_fault_frame < 200):
+    if not CC.latActive or (self.frame - self.last_fault_frame < 200):
       apply_steer = 0
       apply_steer_req = 0
     else:
@@ -70,18 +82,18 @@ class CarController():
       apply_brakes = 0.4
 
 
-    can_sends.append(create_steer_command(self.packer, apply_steer, apply_steer_req, frame))
-    can_sends.append(create_ibst_command(self.packer, active, apply_brakes, frame))
-    can_sends.append(create_pedal_command(self.packer, active, apply_gas, frame))
+    can_sends.append(create_steer_command(self.packer, apply_steer, apply_steer_req, self.frame))
+    can_sends.append(create_ibst_command(self.packer, CC.longActive, apply_brakes, self.frame))
+    can_sends.append(create_pedal_command(self.packer, CC.longActive, apply_gas, self.frame))
 
-    #UI mesg is at 100Hz but we send asap if:
-    if (frame % 10 == 0):
-      can_sends.append(create_msg_command(self.packer, enabled, CS.out.cruiseState.speed * CV.MS_TO_MPH, CS.out.vEgo * CV.MS_TO_MPH))
+    #UI mesg is at 10Hz but we send asap if:
+    if (self.frame % 10 == 0):
+      can_sends.append(create_msg_command(self.packer, CC.enabled, CS.out.cruiseState.speed * CV.MS_TO_MPH, CS.out.vEgo * CV.MS_TO_MPH))
 
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / SteerLimitParams.STEER_MAX
     new_actuators.gas = self.gas
     new_actuators.brake = self.brake
 
-
+    self.frame += 1
     return new_actuators, can_sends
